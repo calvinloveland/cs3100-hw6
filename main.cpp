@@ -4,46 +4,55 @@
 #include <memory>
 
 #include "computePi.hpp"
+#include "tsQueue.cpp"
+#include "tsMap.cpp"
 
-
-void threadWorker(std::uint16_t threadNum) {
-#warning TODO: This function will take a reference to the FIFO task queue as an argument
-#warning TODO: This function will take a reference to your unordered_map as an argument
-
-    //
-    // This code exists simply to illustrate a worker thread.
-    // I had better not see this in your final submission.
-    std::cout << "Hi! I'm thread number " << threadNum << ", and I can count to 10!\n";
-    for (int i = 1; i <= 10; ++i)
-		std::cout << "[" <<  threadNum << "] " << i << std::endl;
-
-    std::cout << "[" <<  threadNum << "] watch me compute digit #"
-        << threadNum+1 << " of pi: "
-        << computePiDigit(threadNum+1) << std::endl;
+void threadWorker(std::uint16_t threadNum,TSQueue<int> &workQueue, TSMap<int> &resultsMap) {
+	for(int i = 0; i < 10; i++){
+		std::cout << ".";
+		std::cout.flush();
+		int digit = workQueue.pop();
+		int result = computePiDigit(digit);
+		resultsMap.insert(digit, result);		
+	} 
+	cout << "Finished";
+	std::cout << workQueue.size();
+	std::cout.flush();
 }
 
 
 
 int main() {
-#warning TODO: Initialize your thread-safe data structures here
-
+	std:cout << "Starting" << std::endl;
+	int count = 100;
+	//Initialize your thread-safe data structures here
+	TSQueue<int> workQueue;
+	for(int i = 0; i < count; i++){
+		workQueue.push(i);
+	}
+	TSMap<int> resultsMap;
+	std::cout << "Data Created" << std::endl;
 	//
 	// Make as many threads as there are CPU cores
     // Assign them to run our threadWorker function, and supply arguments as necessary for that function
 	std::vector<std::shared_ptr<std::thread>> threads;
-	for (std::uint16_t core = 0; core < std::thread::hardware_concurrency(); core++)
+	for (std::uint16_t core = 0; core < std::thread::hardware_concurrency(); core++){
         // The arguments you wish to pass to threadWorker are passed as
         // arguments to the constructor of std::thread
-		threads.push_back(std::make_shared<std::thread>(threadWorker, core));
-
+		std::cout << "Creating Thread";
+		threads.push_back(std::make_shared<std::thread>(threadWorker, core, std::ref(workQueue), std::ref(resultsMap)));
+	}
 	//
 	// Wait for all of these threads to complete
 	for (auto&& thread : threads)
 		thread->join();
 
-	std::cout << std::endl << std::endl;
-
-#warning TODO: Print the digits of PI from our unordered_map, in order
+	std::cout << "Printing Results" << std::endl;
+	
+	//Print results
+	for(int i = 0; i < count; i++){
+		std::cout << resultsMap.get(i);
+	}
 
 	return 0;
 }

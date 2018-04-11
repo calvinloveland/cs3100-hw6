@@ -9,6 +9,6 @@ add_executable(ComputePi
 	main.cpp
 	computePi.cpp
 	computePi.hpp
-
-    # Add files implementing your thread-safe data structures below
+	tsQueue.cpp
+	tsMap.cpp
 )
